@@ -300,7 +300,7 @@ FROM (
 		FROM NOAAData
 		WHERE ObservationDate>='1950-01-01' AND StationName Not in ('DALLAS FAA AIRPORT TX US', 'HOUSTON WILLIAM P HOBBY AIRPORT TX US', 'JFK INTERNATIONAL AIRPORT NY US', 'PHOENIX SKY HARBOR INTERNATIONAL AIRPORT AZ US')
 	) as RankedHourlyPrecipitation
-WHERE PrecipitationRank <= 100 and StationName = 'ATLANTA HARTSFIELD INTERNATIONAL AIRPORT GA US'
+WHERE PrecipitationRank <= 100 and StationName = 'BOSTON MA US'
 Order By ObservationDate
 
 ```
