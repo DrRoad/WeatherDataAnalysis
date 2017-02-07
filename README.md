@@ -1,4 +1,4 @@
-# Top 100 Precipitation Events
+# Greatest 100 Hourly Precipitation Events
 
 I downloaded weather station data from 12 of the largest metro areas in the United States from [NOAA](https://www.ncdc.noaa.gov/cdo-web/) which provides csv files for each weather station.
 
@@ -232,7 +232,7 @@ Order By ObservationDate
 
 ```
 
-I put the data into a very basic RShiny app to visualize when those top 100 hourly precipitation events happened for each city. View the app [here](https://skammlade.shinyapps.io/precipitationrankapp/)
+I put the data into a very basic RShiny app to visualize when those top 100 hourly precipitation events happened for each city. View the app [here](https://skammlade.shinyapps.io/precipitationrankapp/).
 
 ``` r
 # RShiny web app
@@ -286,11 +286,11 @@ shinyApp(ui = ui, server = server)
 
 ```
 
-At first glance it sure looks like there are quite a few extreme precipitation events 
+At first glance it sure looks like there are more extreme precipitation events after 2000.
 ![Screenshot](https://raw.githubusercontent.com/skammlade/WeatherDataAnalysis/master/RShinyCapture.JPG)
 
 
-I'll take a closer look at those data points:
+I took a closer look at some of those data points.
 
 ``` sql
 --Precipitation Ranks
@@ -307,8 +307,6 @@ Order By ObservationDate
 
 While it certainly fits the expected narrative, those data points are likely measurement errors.
 
-
-
-
+![Screenshot](https://raw.githubusercontent.com/skammlade/WeatherDataAnalysis/master/SQLOutputCapture.JPG)
 
 Back to the data for more cleaning!
