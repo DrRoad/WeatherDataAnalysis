@@ -2,6 +2,7 @@
 
 I downloaded weather station data from 12 of the largest metro areas in the United States from [NOAA](https://www.ncdc.noaa.gov/cdo-web/).
 
+First I'll create a table in SQL server...
 
 ``` sql
 CREATE TABLE NOAARawData
@@ -97,4 +98,27 @@ CREATE TABLE NOAARawData
 [MonthlyTotalSeasonToDateHeatingDD] varchar(max),
 [MonthlyTotalSeasonToDateCoolingDD] varchar(max)
 )
+```
+
+and populated it.
+
+``` sql
+-----------
+Insert csv files for each city
+-----------
+BULK INSERT dbo.NOAARawData
+    FROM 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\PhoenixWeatherData.csv'
+    WITH
+    (
+    FIRSTROW = 1,
+    FIELDTERMINATOR = ',',  --CSV field delimiter
+    ROWTERMINATOR = '0x0a',   --Use to shift the control to next row
+    ERRORFILE = 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\ErrorRows.csv',
+    TABLOCK
+    )
+----------
+Delete header rows
+----------
+DELETE FROM dbo.NOAARawData
+	WHERE Station_Name='STATION_NAME'
 ```
