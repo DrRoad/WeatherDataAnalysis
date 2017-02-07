@@ -1,5 +1,5 @@
 BULK INSERT dbo.NOAARawData
-    FROM 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\SanFranciscoWeatherData.csv'
+    FROM 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\PhoenixWeatherData.csv'
     WITH
     (
     FIRSTROW = 1,
@@ -13,8 +13,11 @@ BULK INSERT dbo.NOAARawData
 	FROM dbo.NOAARawData
 
 	DELETE FROM dbo.NOAARawData
-	WHERE Station_Name='Station_Name'
+	WHERE Station_Name='STATION_NAME'
 
 	SELECT top 10 *
 	FROM dbo.NOAADATA
 
+	SELECT * 
+	FROM dbo.NOAARawData
+	WHERE
