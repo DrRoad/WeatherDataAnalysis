@@ -1,6 +1,6 @@
 # Greatest 100 Hourly Precipitation Events
 
-I downloaded weather station data from 12 of the largest metro areas in the United States from [NOAA](https://www.ncdc.noaa.gov/cdo-web/) which provides csv files for each weather station.
+I downloaded local climatological data from 13 of the largest metro areas in the United States from [NOAA](https://data.noaa.gov/dataset/u-s-local-climatological-data-lcd) which provides csv files for each weather station. Documentation for this dataset can be found [here](https://www1.ncdc.noaa.gov/pub/data/cdo/documentation/LCD_documentation.pdf).
 
 First I created a table 'NOAARawData' in SQL server...
 
