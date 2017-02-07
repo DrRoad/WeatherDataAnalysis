@@ -1,8 +1,8 @@
 # Top 100 Precipitation Events
 
-I downloaded weather station data from 12 of the largest metro areas in the United States from [NOAA](https://www.ncdc.noaa.gov/cdo-web/).
+I downloaded weather station data from 12 of the largest metro areas in the United States from [NOAA](https://www.ncdc.noaa.gov/cdo-web/) which provides csv files for each weather station.
 
-First I'll create a table in SQL server...
+First I created a table 'NOAARawData' in SQL server...
 
 ``` sql
 CREATE TABLE NOAARawData
@@ -100,12 +100,12 @@ CREATE TABLE NOAARawData
 )
 ```
 
-and populated it.
+and populated it with data from each weather station.
 
 ``` sql
------------
-Insert csv files for each city
------------
+--------------------------------
+--Insert csv files for each city
+--------------------------------
 BULK INSERT dbo.NOAARawData
     FROM 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\PhoenixWeatherData.csv'
     WITH
@@ -116,9 +116,92 @@ BULK INSERT dbo.NOAARawData
     ERRORFILE = 'C:\Sara\SaraGitHub\WeatherDataAnalysis\RawDataFiles\ErrorRows.csv',
     TABLOCK
     )
-----------
-Delete header rows
-----------
+--------------------
+--Delete header rows
+--------------------
 DELETE FROM dbo.NOAARawData
 	WHERE Station_Name='STATION_NAME'
+```
+
+Then I pulled some key variables to look at into another table: 
+* StationName
+* ObservationDate
+* Temperature
+* Humidity
+
+First I made a table 'NOAAData'...
+
+``` sql
+Create Table NOAAData
+(
+	StationName varchar(max)
+	, ObservationDate datetime --Date
+	, Temperature numeric(3,1) --HOURLYDRYBULBTEMPC
+	, Humidity int  --hourlyrelativehumidity
+	, WindSpeed int  --HOURLYWindSpeed
+	, WindDirection int --HOURLYWindDirection
+	, Pressure numeric (4,2) --HOURLYStationPressure
+	, Precipitation numeric(4,2) --HOURLYPrecip
+)
+
+INSERT INTO NOAAData
+(
+	StationName
+	, ObservationDate --datetime --Date
+	--, Temperature --numeric(3,1) --HOURLYDRYBULBTEMPC
+	--, Humidity --int  --hourlyrelativehumidity
+	--, WindSpeed --int  --HOURLYWindSpeed
+	--, WindDirection --int --HOURLYWindDirection
+	--, Pressure --numeric (4,2) --HOURLYStationPressure
+	--, Precipitation --numeric(4,2) --HOURLYPrecip
+)
+
+SELECT 
+		STATION_NAME
+		 ,	Cast(Date as datetime)
+		--, HOURLYDRYBULBTEMPC
+		--, hourlyrelativehumidity
+		--, HOURLYWindSpeed
+		--, HOURLYWindDirection
+		--, HOURLYStationPressure
+		--, HOURLYPrecip
+FROM dbo.NOAARawData
+
+```
+
+and populated it with data from NOAARawData along with some cleaning.
+
+``` sql
+-------------------
+--Add precipitation
+-------------------
+
+UPDATE NOAAData
+Set NOAAData.Precipitation = Cast(
+								Replace(NOAARawData.HOURLYPrecip, 's', '') 
+										as numeric(4,2)
+								)
+FROM NOAARawData
+	JOIN NOAAData
+		ON NOAARawData.STATION_NAME = NOAAData.StationName
+		AND NOAARawData.Date = NOAAData.ObservationDate
+WHERE isnumeric(Replace(HOURLYPrecip, 's', ''))=1
+
+--------------
+--Add pressure
+--------------
+
+UPDATE NOAAData
+Set NOAAData.Pressure = Cast(
+								Replace(NOAARawData.HOURLYStationPressure, 's', '') 
+										as numeric(4,2)
+								)
+FROM NOAARawData
+	JOIN NOAAData
+		ON NOAARawData.STATION_NAME = NOAAData.StationName
+		AND NOAARawData.Date = NOAAData.ObservationDate
+WHERE isnumeric(Replace(HOURLYStationPressure, 's', ''))=1
+
+
+
 ```
