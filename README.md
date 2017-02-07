@@ -208,7 +208,7 @@ WHERE isnumeric(Replace(HOURLYStationPressure, 's', ''))=1
 
 ```
 
-With increased global temperatures, we expect for more extreme weather events. Is this the case with precipitation? I ranked the HourlyPrecipitation data for each city and selected the top 100 precipitation events in an hour.
+With increased global temperatures, we expect for more extreme weather events. I ranked the HourlyPrecipitation data for each city and selected the top 100 hourly precipitation events.
 
 ``` sql
 -------------------------------------
@@ -232,7 +232,7 @@ Order By ObservationDate
 
 ```
 
-Now that I have my data, I put it into a very basic RShiny app to visualize when those top 100 hourly precipitation events happened for each city.
+I put the data into a very basic RShiny app to visualize when those top 100 hourly precipitation events happened for each city. View the app [here](https://skammlade.shinyapps.io/precipitationrankapp/)
 
 ``` r
 # RShiny web app
@@ -285,3 +285,30 @@ server <- function(input, output, session) {
 shinyApp(ui = ui, server = server)
 
 ```
+
+At first glance it sure looks like there are quite a few extreme precipitation events 
+![Screenshot](https://raw.githubusercontent.com/skammlade/WeatherDataAnalysis/master/RShinyCapture.JPG)
+
+
+I'll take a closer look at those data points:
+
+``` sql
+--Precipitation Ranks
+SELECT * 
+FROM (
+		SELECT StationName, ObservationDate, Year(ObservationDate) as [Year], Precipitation, RANK() over(partition by StationName order by precipitation desc) as PrecipitationRank
+		FROM NOAAData
+		WHERE ObservationDate>='1950-01-01' AND StationName Not in ('DALLAS FAA AIRPORT TX US', 'HOUSTON WILLIAM P HOBBY AIRPORT TX US', 'JFK INTERNATIONAL AIRPORT NY US', 'PHOENIX SKY HARBOR INTERNATIONAL AIRPORT AZ US')
+	) as RankedHourlyPrecipitation
+WHERE PrecipitationRank <= 100 and StationName = 'ATLANTA HARTSFIELD INTERNATIONAL AIRPORT GA US'
+Order By ObservationDate
+
+```
+
+While it certainly fits the expected narrative, those data points are likely measurement errors.
+
+
+
+
+
+Back to the data for more cleaning!
