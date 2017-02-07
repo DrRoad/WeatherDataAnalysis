@@ -123,11 +123,15 @@ DELETE FROM dbo.NOAARawData
 	WHERE Station_Name='STATION_NAME'
 ```
 
-Then I pulled some key variables to look at into another table: 
+Then I pulled a small subset of variables that may be interesting to look at into another table: 
 * StationName
 * ObservationDate
-* Temperature
-* Humidity
+* HourlyTemperature
+* HourlyHumidity
+* HourlyWindSpeed
+* HourlyWindDirection
+* HourlyPressure
+* HourlyPrecipitation
 
 First I made a table 'NOAAData'...
 
@@ -202,6 +206,82 @@ FROM NOAARawData
 		AND NOAARawData.Date = NOAAData.ObservationDate
 WHERE isnumeric(Replace(HOURLYStationPressure, 's', ''))=1
 
+```
 
+With increased global temperatures, we expect for more extreme weather events. Is this the case with precipitation? I ranked the HourlyPrecipitation data for each city and selected the top 100 precipitation events in an hour.
+
+``` sql
+-------------------------------------
+--find earliest date for each station
+-------------------------------------
+SELECT StationName, Min(ObservationDate)
+FROM NOAAData
+Group By StationName
+
+-----------------------------
+--Precipitation Ranks top 100
+-----------------------------
+SELECT * 
+FROM (
+		SELECT StationName, ObservationDate, Year(ObservationDate) as [Year], Precipitation, RANK() over(partition by StationName order by precipitation desc) as PrecipitationRank
+		FROM NOAAData
+		WHERE ObservationDate>='1950-01-01' AND StationName Not in ('DALLAS FAA AIRPORT TX US', 'HOUSTON WILLIAM P HOBBY AIRPORT TX US', 'JFK INTERNATIONAL AIRPORT NY US', 'PHOENIX SKY HARBOR INTERNATIONAL AIRPORT AZ US')
+	) as RankedHourlyPrecipitation
+WHERE PrecipitationRank <= 100
+Order By ObservationDate
+
+```
+
+Now that I have my data, I put it into a very basic RShiny app to visualize when those top 100 hourly precipitation events happened for each city.
+
+``` r
+# RShiny web app
+library(shiny)
+library(ggplot2)
+library(dplyr)
+
+precipData <- read.csv("RankPrecip.csv", stringsAsFactors = FALSE)
+
+ui <- fluidPage(
+        titlePanel("100 Greatest Hourly Precipitation Events"),
+        sidebarLayout(
+          sidebarPanel(
+            checkboxGroupInput(inputId = "StationName", 
+                               label = "Select Cities:",
+                               choices = c("Atlanta" = "ATLANTA HARTSFIELD INTERNATIONAL AIRPORT GA US" ,
+                                           "Boston" = "BOSTON MA US",
+                                           "Chicago" = "CHICAGO MIDWAY AIRPORT IL US",
+                                           "Detroit" = "DETROIT CITY AIRPORT MI US",
+                                           "Los Angeles" = "LOS ANGELES INTERNATIONAL AIRPORT CA US",
+                                           "Miami" = "MIAMI INTERNATIONAL AIRPORT FL US",
+                                           "Philedelphia" = "PHILADELPHIA INTERNATIONAL AIRPORT PA US",
+                                           "San Francisco" = "SAN FRANCISCO INTERNATIONAL AIRPORT CA US",
+                                           "DC" = "WASHINGTON REAGAN NATIONAL AIRPORT VA US"))),
+          mainPanel(
+            plotOutput(outputId = "coolplot",
+                       height = "400px")
+          )
+        )
+      )
+
+server <- function(input, output, session) {
+  filtered <- reactive({
+    print(eval(input$StationName))
+    precipData %>% 
+      filter(StationName %in% eval(input$StationName))
+  })
+  
+  
+  output$coolplot <- renderPlot({
+    if (is.null(filtered())) {
+      return()
+    }
+    ggplot(filtered(), aes(x=Year, y=Precipitation, color=StationName)) + geom_point(shape=21, size=3) + theme(axis.ticks.x = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_blank(), panel.background = element_rect(fill="white"), legend.position = "right", legend.background = element_blank(), legend.key = element_blank()) + guides(colour = guide_legend(ncol = 1)) + xlim(1950,2016)
+    
+  })
+  
+}
+
+shinyApp(ui = ui, server = server)
 
 ```
